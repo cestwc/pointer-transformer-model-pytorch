@@ -7,6 +7,8 @@ To use this code, we sincerely recommend you to take a look at this [Tutorial](h
 
 As everyone may have their own application with this model, we would not publish a separate file for the usage, but rather paste it here. This usage is also very similar to the format you saw in the tutorial just now. One **BIG** difference you need to notice is that the original ```Field``` class instances are not enough to handle out-of-vocabulary words, and thus all that you need to do is to put the ```oov.py``` file from [here](https://cestwc.medium.com/how-do-you-write-a-clean-pointer-generator-model-with-pytorch-80d25bde113b) into the directory where your codes are running. You can assume this ```oov.py``` as a patch to standard Torchtext 0.9.1, till the day newer versions emerge.
 
+This model may be more favorable than the RNN pointer [model here](https://github.com/cestwc/pointer-generator-model-pytorch) in terms of speed (1 / 6 time on same dataset) and accuracy (slightly higher). This could be attributed to the advantage of transformer architecture.
+
 ## Usage
 ### Import all necessary packages, fix your seeds, and create your ```Field``` objects
 ```python
