@@ -239,8 +239,8 @@ for epoch in range(N_EPOCHS):
 	epoch_mins, epoch_secs = epoch_time(start_time, end_time)
 
 	if valid_loss < best_valid_loss:
-	best_valid_loss = valid_loss
-	torch.save(model.state_dict(), drivePath + 'tut6-model.pt')
+		best_valid_loss = valid_loss
+		torch.save(model.state_dict(), drivePath + 'tut6-model.pt')
 
 	print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
 	print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
