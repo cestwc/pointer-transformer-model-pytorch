@@ -214,7 +214,7 @@ def evaluate(model, iterator, criterion):
 
 			epoch_loss += loss.item()
 
-    return epoch_loss / len(iterator)
+	return epoch_loss / len(iterator)
 	
 def epoch_time(start_time, end_time):
 	elapsed_time = end_time - start_time
@@ -229,22 +229,22 @@ best_valid_loss = float('inf')
 
 for epoch in range(N_EPOCHS):
     
-    start_time = time.time()
-    
-    train_loss = train(model, train_iterator, optimizer, criterion, CLIP)
-    valid_loss = evaluate(model, valid_iterator, criterion)
-    
-    end_time = time.time()
-    
-    epoch_mins, epoch_secs = epoch_time(start_time, end_time)
-    
-    if valid_loss < best_valid_loss:
-        best_valid_loss = valid_loss
-        torch.save(model.state_dict(), drivePath + 'tut6-model.pt')
-    
-    print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
-    print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
-    print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
+	start_time = time.time()
+
+	train_loss = train(model, train_iterator, optimizer, criterion, CLIP)
+	valid_loss = evaluate(model, valid_iterator, criterion)
+
+	end_time = time.time()
+
+	epoch_mins, epoch_secs = epoch_time(start_time, end_time)
+
+	if valid_loss < best_valid_loss:
+	best_valid_loss = valid_loss
+	torch.save(model.state_dict(), drivePath + 'tut6-model.pt')
+
+	print(f'Epoch: {epoch+1:02} | Time: {epoch_mins}m {epoch_secs}s')
+	print(f'\tTrain Loss: {train_loss:.3f} | Train PPL: {math.exp(train_loss):7.3f}')
+	print(f'\t Val. Loss: {valid_loss:.3f} |  Val. PPL: {math.exp(valid_loss):7.3f}')
 ```              
 ```python
 model.load_state_dict(torch.load(drivePath + 'tut6-model.pt'))
@@ -258,84 +258,84 @@ print(f'| Test Loss:  {test_loss: .3f} | Test PPL: {math.exp(test_loss):7.3f} |'
 you may need two more functions than the original tutorial
 ```python
 def stoiOOV(arr, srcArr, vocab):
-    ids = []
-    srcOOV = list(set([x for x in srcArr if vocab.stoi[x] == vocab.stoi['<unk>']]))
-    for i in range(len(arr)):
-        idx = vocab.stoi[arr[i]]
-        if idx == vocab.stoi['<unk>'] and arr[i] in srcOOV:
-            idx = len(vocab) + srcOOV.index(arr[i]) # Map to its temporary article OOV number
-        ids.append(idx)
-    return ids
+	ids = []
+	srcOOV = list(set([x for x in srcArr if vocab.stoi[x] == vocab.stoi['<unk>']]))
+	for i in range(len(arr)):
+		idx = vocab.stoi[arr[i]]
+		if idx == vocab.stoi['<unk>'] and arr[i] in srcOOV:
+			idx = len(vocab) + srcOOV.index(arr[i]) # Map to its temporary article OOV number
+		ids.append(idx)
+	return ids
 
 def itosOOV(ids, srcArr, vocab):
-    arr = []
-    srcOOV = list(set([x for x in srcArr if vocab.stoi[x] == vocab.stoi['<unk>']]))
-    for i in range(len(ids)):
-        if ids[i] < len(vocab):
-            string = vocab.itos[ids[i]]
-        elif (ids[i] - len(vocab)) < len(srcOOV):
-            string = srcOOV[ids[i] - len(vocab)]
-        else:
-            string = '<unk>'
-        arr.append(string)
-    return arr
+	arr = []
+	srcOOV = list(set([x for x in srcArr if vocab.stoi[x] == vocab.stoi['<unk>']]))
+	for i in range(len(ids)):
+		if ids[i] < len(vocab):
+			string = vocab.itos[ids[i]]
+		elif (ids[i] - len(vocab)) < len(srcOOV):
+			string = srcOOV[ids[i] - len(vocab)]
+		else:
+			string = '<unk>'
+		arr.append(string)
+	return arr
 ```
 and then
 ```python
 def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 50):
     
-    model.eval()
-        
-    if isinstance(sentence, str):
-        nlp = spacy.load('en_core_web_sm')
-        tokens = [token.text.lower() for token in nlp(sentence)]
-    else:
-        tokens = [token.lower() for token in sentence]
+	model.eval()
 
-    tokens = [src_field.init_token] + tokens + [src_field.eos_token]
-        
-    src_indexes = stoiOOV(tokens, tokens, src_field.vocab) # changed here
+	if isinstance(sentence, str):
+		nlp = spacy.load('en_core_web_sm')
+		tokens = [token.text.lower() for token in nlp(sentence)]
+	else:
+		tokens = [token.lower() for token in sentence]
 
-    src_tensor = torch.LongTensor(src_indexes).unsqueeze(0).to(device)
+	tokens = [src_field.init_token] + tokens + [src_field.eos_token]
 
-    src_mask = model.make_src_mask(src_tensor)
-    
-    with torch.no_grad():
-        enc_src = model.encoder(src_tensor.masked_fill(src_tensor >= model.encoder.tok_embedding.num_embeddings, 0), src_mask) # changed here
+	src_indexes = stoiOOV(tokens, tokens, src_field.vocab) # changed here
 
-    trg_indexes = [trg_field.vocab.stoi[trg_field.init_token]]
+	src_tensor = torch.LongTensor(src_indexes).unsqueeze(0).to(device)
 
-    for i in range(max_len):
+	src_mask = model.make_src_mask(src_tensor)
 
-        trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
+	with torch.no_grad():
+		enc_src = model.encoder(src_tensor.masked_fill(src_tensor >= model.encoder.tok_embedding.num_embeddings, 0), src_mask) # changed here
 
-        trg_mask = model.make_trg_mask(trg_tensor)
-        
-        with torch.no_grad():
-            output, attention = model.decoder(trg_tensor.masked_fill(trg_tensor >= model.decoder.tok_embedding.num_embeddings, 0), enc_src, trg_mask, src_mask) # changed here
+	trg_indexes = [trg_field.vocab.stoi[trg_field.init_token]]
 
-            w_pointer = torch.sigmoid(model.switch(output))
+	for i in range(max_len):
 
-            #w_pointer = [batch size, trg len, 1]
+		trg_tensor = torch.LongTensor(trg_indexes).unsqueeze(0).to(device)
 
-            if torch.max(src_tensor) + 1 > output.shape[-1]:
-                extended = Variable(torch.zeros((output.shape[0], output.shape[1], torch.max(src_tensor) + 1 - output.shape[-1]))).to(output.device)
-                output = torch.cat((output, extended), dim = 2)
+		trg_mask = model.make_trg_mask(trg_tensor)
 
-                #output = [batch size, trg len, output dim + oov num]
+		with torch.no_grad():
+			output, attention = model.decoder(trg_tensor.masked_fill(trg_tensor >= model.decoder.tok_embedding.num_embeddings, 0), enc_src, trg_mask, src_mask) # changed here
 
-            output = output.scatter_add(2, src_tensor.unsqueeze(1).repeat(1, output.shape[1], 1), w_pointer * attention[:, 3])
-        
-        pred_token = output.argmax(2)[:,-1].item()
-        
-        trg_indexes.append(pred_token)
+			w_pointer = torch.sigmoid(model.switch(output))
 
-        if pred_token == trg_field.vocab.stoi[trg_field.eos_token]:
-            break
-    
-    trg_tokens = itosOOV(trg_indexes, tokens, trg_field.vocab) # changed here
-    
-    return trg_tokens[1:], attention
+			#w_pointer = [batch size, trg len, 1]
+
+			if torch.max(src_tensor) + 1 > output.shape[-1]:
+				extended = Variable(torch.zeros((output.shape[0], output.shape[1], torch.max(src_tensor) + 1 - output.shape[-1]))).to(output.device)
+				output = torch.cat((output, extended), dim = 2)
+
+				#output = [batch size, trg len, output dim + oov num]
+
+			output = output.scatter_add(2, src_tensor.unsqueeze(1).repeat(1, output.shape[1], 1), w_pointer * attention[:, 3])
+
+		pred_token = output.argmax(2)[:,-1].item()
+
+		trg_indexes.append(pred_token)
+
+		if pred_token == trg_field.vocab.stoi[trg_field.eos_token]:
+			break
+
+	trg_tokens = itosOOV(trg_indexes, tokens, trg_field.vocab) # changed here
+
+	return trg_tokens[1:], attention
 ```
 
 ## Final words
