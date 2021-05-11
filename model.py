@@ -367,14 +367,14 @@ class Seq2Seq(nn.Module):
 
 		p_pointer = torch.sigmoid(self.switch(output)) / 10
 
-        #p_pointer = [batch size, trg len, 1]
+		#p_pointer = [batch size, trg len, 1]
 
-        if torch.max(src) + 1 > output.shape[-1]:
-            extended = Variable(torch.zeros((output.shape[0], output.shape[1], torch.max(src) + 1 - output.shape[-1]))).to(output.device)
-            output = torch.cat((output, extended), dim = 2)
+		if torch.max(src) + 1 > output.shape[-1]:
+			extended = Variable(torch.zeros((output.shape[0], output.shape[1], torch.max(src) + 1 - output.shape[-1]))).to(output.device)
+			output = torch.cat((output, extended), dim = 2)
 
-            #output = [batch size, trg len, output dim + oov num]
+			#output = [batch size, trg len, output dim + oov num]
 
-        output = ((1 - p_pointer) * F.softmax(output, dim = 2)).scatter_add(2, src.unsqueeze(1).repeat(1, output.shape[1], 1), p_pointer * attention[:, 3]) + 1e-10
-        
-        return torch.log(output), attention
+		output = ((1 - p_pointer) * F.softmax(output, dim = 2)).scatter_add(2, src.unsqueeze(1).repeat(1, output.shape[1], 1), p_pointer * attention[:, 3]) + 1e-10
+
+		return torch.log(output), attention
