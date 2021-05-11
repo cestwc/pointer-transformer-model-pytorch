@@ -281,6 +281,7 @@ def itosOOV(ids, srcArr, vocab):
     return arr
 ```
 and then
+```python
 def translate_sentence(sentence, src_field, trg_field, model, device, max_len = 50):
     
     model.eval()
